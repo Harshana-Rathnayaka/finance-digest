@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:finance_digest/constants/app_colors.dart';
 import 'package:finance_digest/constants/app_fonts.dart';
@@ -7,6 +8,7 @@ import 'package:finance_digest/services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../constants/app_text.dart';
 import '../../models/user.dart';
@@ -79,7 +81,15 @@ class _LoginState extends State<Login> {
                   storage.write(key: 'userId', value: id.toString());
                   _firstNameController.clear();
                   _lastNameController.clear();
-                  if (context.mounted) context.pushNamed(AppRoute.notificationPermission.name);
+
+                  // checking if notifications are allowed
+                  if (Platform.isAndroid && (await Permission.notification.isDenied || await Permission.notification.isPermanentlyDenied)) {
+                    // if denied send the user to notification permission page
+                    if (context.mounted) context.pushNamed(AppRoute.notificationPermission.name);
+                  } else {
+                    // if granted go straight to the dashboard
+                    if (context.mounted) context.pushNamed(AppRoute.dashboard.name);
+                  }
                 }
               }
             : null,
